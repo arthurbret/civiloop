@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{content_type}\\\\n\" \"https://www2.assemblee-nationale.fr/static/tribun/17/photos/330008.jpg\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} %{content_type}\\\\n\" \"https://www2.assemblee-nationale.fr/static/tribun/17/photos/1008.jpg\")",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__8ceac556-7585-40b1-89d8-5d3e298a7e4f__get_project_url",
+      "mcp__8ceac556-7585-40b1-89d8-5d3e298a7e4f__get_publishable_keys",
+      "mcp__8ceac556-7585-40b1-89d8-5d3e298a7e4f__list_tables"
+    ]
+  }
+}
