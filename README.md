@@ -65,6 +65,20 @@ Effet immédiat (≤ 1 min, `revalidate = 60`) :
 Au début, ça se fait directement dans l'**éditeur de tables Supabase** (= back-office
 instantané). Un back-office maison (auth Supabase) pourra venir ensuite sans changer le modèle.
 
+## Résumé IA des députés
+
+La fiche d'un député affiche un encart « En bref » : 2-3 phrases sur son profil
+politique, **générées par Gemini** (`gemini-3.1-flash-lite`) à partir de ses votes
+sur les scrutins solennels.
+
+- Génération **paresseuse** au premier affichage, puis **mise en cache** en base
+  (`deputes.resume_ia` / `resume_ia_maj`) — régénérée après 30 jours. L'appel modèle
+  n'a donc lieu qu'une fois par député, et la fiche reste rapide (streaming via React
+  `Suspense` : le résumé arrive après le reste de la page).
+- Prompt **neutre et factuel**, ancré uniquement sur les votes ; encart explicitement
+  marqué « généré par IA ». Clé dans `GEMINI_API_KEY` (jamais exposée au client).
+- Pour forcer un rafraîchissement : `update deputes set resume_ia = null where id = '…';`
+
 ## Mise à jour quotidienne
 
 Les dumps sont republiés chaque jour par l'Assemblée nationale. Sans redéploiement :
@@ -76,8 +90,10 @@ Les dumps sont republiés chaque jour par l'Assemblée nationale. Sans redéploi
 ### Déploiement sur Coolify (VPS)
 
 1. **Nouvelle ressource → Application**, dépôt Git, *Build Pack* = **Dockerfile**, port `3000`.
-2. **Environment Variables** → `DATABASE_URL` (connexion Postgres Supabase).
-   ⚠️ La cocher aussi comme **Build Variable** : le prérendu interroge la base au build.
+2. **Environment Variables** :
+   - `DATABASE_URL` (connexion Postgres Supabase). ⚠️ La cocher aussi comme
+     **Build Variable** : le prérendu interroge la base au build.
+   - `GEMINI_API_KEY` (résumés IA). Runtime suffit (pas besoin au build).
 3. **Scheduled Tasks** → ajouter :
    - **Command** : `node scripts/refresh-data.mjs`
    - **Frequency** : `0 5 * * *` (tous les jours à 5 h)

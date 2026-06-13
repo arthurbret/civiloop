@@ -1,4 +1,4 @@
-import { pgTable, text, integer, boolean, date, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, boolean, date, jsonb, timestamp } from "drizzle-orm/pg-core";
 
 export type Position = "P" | "C" | "A" | "N";
 export type VoteTuple = [numero: number, position: Position];
@@ -41,6 +41,9 @@ export const deputes = pgTable("deputes", {
   participation: integer("participation").notNull(),
   nbVotes: integer("nb_votes").notNull(),
   votes: jsonb("votes").$type<VoteTuple[]>().notNull(),
+  // Résumé généré par IA (Gemini), mis en cache
+  resumeIa: text("resume_ia"),
+  resumeIaMaj: timestamp("resume_ia_maj", { withTimezone: true }),
 });
 
 export const scrutins = pgTable("scrutins", {

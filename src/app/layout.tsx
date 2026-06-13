@@ -19,12 +19,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-20 border-b border-border bg-card/85 backdrop-blur">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5">
             <Link href="/" className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-lg">
-                <span className="flex h-full w-full">
-                  <span className="w-1/3 bg-[#000091]" />
-                  <span className="w-1/3 bg-white outline outline-1 -outline-offset-1 outline-line" />
-                  <span className="w-1/3 bg-[#E1000F]" />
-                </span>
+              <span className="inline-flex h-8 w-8 overflow-hidden rounded-md border border-border">
+                <svg viewBox="0 0 3 3" preserveAspectRatio="none" className="h-full w-full" aria-hidden>
+                  <rect x="0" width="1" height="3" fill="#000091" />
+                  <rect x="1" width="1" height="3" fill="#ffffff" />
+                  <rect x="2" width="1" height="3" fill="#E1000F" />
+                </svg>
               </span>
               <span className="text-lg font-extrabold tracking-tight">Civiloop</span>
             </Link>

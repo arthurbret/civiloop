@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -12,8 +13,9 @@ import {
   type Position,
 } from "@/lib/data";
 import { age, formatDate, ordinalCirco, titreScrutin } from "@/lib/format";
-import { Card, CardTitle, FlagBars, PositionBadge } from "@/components/ui";
+import { Card, CardTitle, FlagBars, PositionPill } from "@/components/ui";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import ResumeDepute, { ResumeSkeleton } from "@/components/ResumeDepute";
 import Hemicycle from "@/components/Hemicycle";
 import FranceMap from "@/components/FranceMap";
 import Gauge from "@/components/Gauge";
@@ -77,6 +79,10 @@ export default async function DeputePage({ params }: { params: Promise<{ id: str
       <Link href="/deputes" className="inline-flex items-center gap-2 text-[13px] font-semibold text-muted-foreground hover:text-foreground">
         <ArrowLeftIcon /> Tous les députés
       </Link>
+
+      <Suspense fallback={<ResumeSkeleton />}>
+        <ResumeDepute id={depute.id} />
+      </Suspense>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Colonne principale */}
@@ -188,24 +194,25 @@ export default async function DeputePage({ params }: { params: Promise<{ id: str
               <CardTitle icon={<CheckSquareIcon />}>Sur les votes importants</CardTitle>
               <ul className="mt-4 flex flex-col divide-y divide-border">
                 {positionsImportants.map(({ scrutin, position }) => (
-                  <li key={scrutin.n} className="flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
+                  <li key={scrutin.n} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
                     <Link
                       href={`/votes/${scrutin.n}`}
-                      className="text-[13px] font-semibold leading-snug hover:underline"
+                      className="line-clamp-2 flex-1 text-[13px] font-medium leading-snug hover:underline"
                     >
-                      {scrutin.importantLabel ?? titreScrutin(scrutin.titre)}{" "}
-                      <span className="whitespace-nowrap text-muted-foreground">n°{scrutin.n}</span>
+                      {scrutin.importantLabel ?? titreScrutin(scrutin.titre)}
                     </Link>
                     {position ? (
-                      <PositionBadge position={position} className="shrink-0" />
+                      <PositionPill position={position} className="shrink-0" />
                     ) : (
-                      <span className="shrink-0 text-[12px] font-semibold text-muted-foreground">Absent</span>
+                      <span className="shrink-0 rounded-md bg-nv-bg px-2 py-1 text-[11px] font-bold uppercase text-nv">
+                        Abs.
+                      </span>
                     )}
                   </li>
                 ))}
               </ul>
               <p className="mt-4 border-t border-dashed border-border pt-4 text-[12px] leading-relaxed text-muted-foreground">
-                Ces scrutins sont mis en avant car identifiés comme importants (forte attention médiatique et citoyenne).
+                Scrutins identifiés comme importants (forte attention médiatique et citoyenne).
               </p>
             </Card>
           )}

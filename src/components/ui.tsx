@@ -76,6 +76,29 @@ export function PositionBadge({ position, className = "" }: { position: Position
   );
 }
 
+const POSITION_SOFT: Record<Position, string> = {
+  P: "bg-pour-bg text-pour",
+  C: "bg-contre-bg text-contre",
+  A: "bg-abstention-bg text-abstention",
+  N: "bg-nv-bg text-nv",
+};
+
+/** Variante compacte du badge de position (listes denses), couleurs douces. */
+export function PositionPill({ position, className = "" }: { position: Position; className?: string }) {
+  return (
+    <Badge
+      className={cn(
+        "h-auto gap-1 rounded-md px-2 py-1 text-[11px] font-bold tracking-wide uppercase [&>svg]:size-3.5",
+        POSITION_SOFT[position],
+        className
+      )}
+    >
+      {POSITION_ICON[position]}
+      {POSITION_LABEL[position]}
+    </Badge>
+  );
+}
+
 /** Badge de résultat d'un scrutin (Adopté / Rejeté), bâti sur le Badge shadcn. */
 export function SortBadge({ sort, className = "" }: { sort: string; className?: string }) {
   const adopte = sort === "adopté";
@@ -102,12 +125,18 @@ export function GroupeTag({ nom, couleur, href }: { nom: string; couleur: string
   return href ? <Link href={href}>{inner}</Link> : inner;
 }
 
-// Petit drapeau décoratif (barres bleue / rouge) comme sur la maquette
+// Bandeau tricolore décoratif (bleu-blanc-rouge) au-dessus de la photo.
+// Dégradé à bandes nettes : pas de sous-éléments, rendu déterministe.
 export function FlagBars() {
   return (
-    <div className="flex justify-between px-6">
-      <span className="h-1 w-12 rounded-full bg-[#000091]" />
-      <span className="h-1 w-12 rounded-full bg-[#E1000F]" />
+    <div className="flex justify-center">
+      <span
+        className="h-1.5 w-32 rounded-full border border-border"
+        style={{
+          background:
+            "linear-gradient(to right, #000091 0 33.333%, #ffffff 33.333% 66.666%, #E1000F 66.666% 100%)",
+        }}
+      />
     </div>
   );
 }
