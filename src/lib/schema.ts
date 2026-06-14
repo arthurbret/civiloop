@@ -14,6 +14,26 @@ export type VentilationGroupe = {
   votants: { P: string[]; C: string[]; A: string[]; N: string[] };
 };
 
+// Déclaration d'intérêts et d'activités (HATVP) — données déclaratives officielles.
+export type InteretItem = {
+  description: string;
+  employeur?: string;
+  dates?: string;
+  montant?: string;
+};
+export type InteretRubrique = {
+  cle: string;
+  titre: string;
+  neant: boolean;
+  items: InteretItem[];
+};
+export type InteretsHatvp = {
+  sourceUrl: string;
+  dateDepot: string | null;
+  modificative: boolean;
+  rubriques: InteretRubrique[];
+};
+
 export const groupes = pgTable("groupes", {
   id: text("id").primaryKey(),
   nom: text("nom").notNull(),
@@ -44,6 +64,9 @@ export const deputes = pgTable("deputes", {
   // Résumé généré par IA (Gemini), mis en cache
   resumeIa: text("resume_ia"),
   resumeIaMaj: timestamp("resume_ia_maj", { withTimezone: true }),
+  // Déclaration d'intérêts et d'activités (HATVP) — null si non publiée
+  interets: jsonb("interets").$type<InteretsHatvp>(),
+  interetsMaj: timestamp("interets_maj", { withTimezone: true }),
 });
 
 export const scrutins = pgTable("scrutins", {

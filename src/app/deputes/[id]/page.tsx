@@ -16,6 +16,7 @@ import { age, formatDate, ordinalCirco, titreScrutin } from "@/lib/format";
 import { Card, CardTitle, FlagBars, PositionPill } from "@/components/ui";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import ResumeDepute, { ResumeSkeleton } from "@/components/ResumeDepute";
+import InteretsDepute from "@/components/InteretsDepute";
 import Hemicycle from "@/components/Hemicycle";
 import FranceMap from "@/components/FranceMap";
 import Gauge from "@/components/Gauge";
@@ -162,6 +163,9 @@ export default async function DeputePage({ params }: { params: Promise<{ id: str
               ))}
             </Carousel>
           </Card>
+
+          {/* Activités et intérêts déclarés (HATVP) */}
+          <InteretsDepute id={depute.id} />
 
           <section className="grid grid-cols-1 gap-6 sm:grid-cols-2">
             {/* Hémicycle */}

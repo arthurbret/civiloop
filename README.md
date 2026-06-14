@@ -11,7 +11,8 @@ dans une interface « bento » claire et accessible.
 - **/votes/[numéro]** — le détail d'un scrutin : totaux, vote par groupe, vote nominatif de chaque député.
 - **/deputes** — l'annuaire des 577 députés, filtrable par nom, département et groupe.
 - **/deputes/[id]** — la fiche d'un député : informations, position sur le dernier scrutin solennel,
-  derniers votes, circonscription sur la carte, place du groupe dans l'hémicycle, taux de participation.
+  derniers votes, **activités et intérêts déclarés (HATVP)**, circonscription sur la carte, place du
+  groupe dans l'hémicycle, taux de participation.
 
 ## Démarrage
 
@@ -30,7 +31,7 @@ via `DATABASE_URL` (Drizzle + postgres.js). Tables :
 | Table | Contenu |
 |---|---|
 | `groupes` | groupes politiques (couleur, effectif…) |
-| `deputes` | 577 députés ; `votes` (jsonb) = historique `[[numero, position]]` |
+| `deputes` | 577 députés ; `votes` (jsonb) = historique `[[numero, position]]` ; `interets` (jsonb) = déclaration d'intérêts HATVP |
 | `scrutins` | scrutins ; `ventilation` (jsonb) = vote nominatif par groupe ; **`is_important` / `important_label` / `important_rank`** = curation |
 
 Le chargement se fait en une commande :
@@ -42,7 +43,10 @@ npm run import
 ```
 
 Sources : [Scrutins.json.zip](https://data.assemblee-nationale.fr/static/openData/repository/17/loi/scrutins/Scrutins.json.zip)
-et [AMO10 députés actifs](https://data.assemblee-nationale.fr/static/openData/repository/17/amo/deputes_actifs_mandats_actifs_organes/AMO10_deputes_actifs_mandats_actifs_organes.json.zip).
+et [AMO10 députés actifs](https://data.assemblee-nationale.fr/static/openData/repository/17/amo/deputes_actifs_mandats_actifs_organes/AMO10_deputes_actifs_mandats_actifs_organes.json.zip),
+plus l'[open data HATVP](https://www.hatvp.fr/open-data/) (déclarations d'intérêts, licence Etalab) :
+[liste.csv](https://www.hatvp.fr/livraison/opendata/liste.csv) (index) et
+[declarations.xml](https://www.hatvp.fr/livraison/merge/declarations.xml) (~80 Mo).
 La géométrie des départements est un asset statique committé (`src/lib/departements-svg.json`).
 
 > L'import est **idempotent** : il met à jour les colonnes open data mais **ne touche
@@ -78,6 +82,29 @@ sur les scrutins solennels.
 - Prompt **neutre et factuel**, ancré uniquement sur les votes ; encart explicitement
   marqué « généré par IA ». Clé dans `GEMINI_API_KEY` (jamais exposée au client).
 - Pour forcer un rafraîchissement : `update deputes set resume_ia = null where id = '…';`
+
+## Activités & intérêts déclarés (HATVP)
+
+La fiche d'un député affiche une carte « Activités et intérêts déclarés » : ce qu'il/elle fait
+**en dehors du mandat**, à partir de l'[open data de la HATVP](https://www.hatvp.fr/open-data/)
+(déclarations d'intérêts et d'activités). Six rubriques : activités professionnelles (5 dernières
+années), activités de consultant, participations à des organes dirigeants, participations
+financières, fonctions bénévoles, autres mandats électifs.
+
+- **Faits déclaratifs officiels uniquement**, sourcés, avec lien vers la déclaration d'origine sur
+  hatvp.fr. **Aucune IA, aucune interprétation.** Sont volontairement exclus : les données du
+  conjoint, les collaborateurs (noms de tiers) et les observations en texte libre. Les marqueurs
+  « [Données non publiées] » de la HATVP sont nettoyés.
+- **Rapprochement** déclaration ↔ député par **nom + date de naissance** (`scripts/lib/parse-hatvp.mjs`),
+  conçu pour zéro faux positif (jamais sur la seule date de naissance ni le seul nom). Mis en cache
+  en base dans `deputes.interets` (jsonb) ; ~533/577 députés rapprochés (les autres n'ont pas encore
+  de déclaration publiée → un état neutre est affiché).
+- Alimenté par le même `npm run refresh` / `npm run import` que le reste (étape indépendante, qui ne
+  met à jour que `interets` / `interets_maj`).
+
+> Périmètre assumé : **pas** de « casier judiciaire » ni de plaintes/accusations (non disponibles en
+> open data, et risque juridique — présomption d'innocence, RGPD). Uniquement des déclarations
+> officielles, factuelles et vérifiables.
 
 ## Mise à jour quotidienne
 

@@ -32,6 +32,14 @@ const SOURCES = [
   },
 ];
 
+// Open data HATVP : déclarations d'intérêts et d'activités (non zippées).
+// declarations.xml est la source la plus lourde (~80 Mo) ; téléchargée une fois par jour.
+const HATVP_DIR = join(RAW, "hatvp");
+const HATVP_FILES = [
+  { nom: "HATVP — index (liste.csv)", url: "https://www.hatvp.fr/livraison/opendata/liste.csv", dest: join(HATVP_DIR, "liste.csv") },
+  { nom: "HATVP — déclarations (XML, ~80 Mo)", url: "https://www.hatvp.fr/livraison/merge/declarations.xml", dest: join(HATVP_DIR, "declarations.xml") },
+];
+
 // Géométrie des départements : statique, téléchargée une seule fois.
 const GEOJSON_URL =
   "https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson";
@@ -54,6 +62,14 @@ async function main() {
     mkdirSync(src.dest, { recursive: true });
     new AdmZip(buf).extractAllTo(src.dest, /* overwrite */ true);
     console.log(`${(buf.length / 1e6).toFixed(1)} Mo extraits`);
+  }
+
+  mkdirSync(HATVP_DIR, { recursive: true });
+  for (const f of HATVP_FILES) {
+    process.stdout.write(`↓ ${f.nom}… `);
+    const buf = await download(f.url);
+    writeFileSync(f.dest, buf);
+    console.log(`${(buf.length / 1e6).toFixed(1)} Mo`);
   }
 
   if (!existsSync(GEOJSON_DEST)) {

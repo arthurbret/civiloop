@@ -2,8 +2,8 @@ import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import { db } from "./db";
 import { groupes as tGroupes, deputes as tDeputes, scrutins as tScrutins } from "./schema";
 
-export type { Position, VoteTuple, VentilationGroupe } from "./schema";
-import type { VoteTuple, VentilationGroupe } from "./schema";
+export type { Position, VoteTuple, VentilationGroupe, InteretsHatvp, InteretRubrique, InteretItem } from "./schema";
+import type { VoteTuple, VentilationGroupe, InteretsHatvp } from "./schema";
 export { getCarte } from "./carte";
 export type { Departement } from "./carte";
 
@@ -130,6 +130,12 @@ export async function getDepute(id: string): Promise<Depute | null> {
 export async function getVotesDepute(id: string): Promise<VoteTuple[]> {
   const [d] = await db.select({ votes: tDeputes.votes }).from(tDeputes).where(eq(tDeputes.id, id)).limit(1);
   return d?.votes ?? [];
+}
+
+// Déclaration d'intérêts et d'activités du député (open data HATVP), null si non publiée.
+export async function getInteretsDepute(id: string): Promise<InteretsHatvp | null> {
+  const [d] = await db.select({ interets: tDeputes.interets }).from(tDeputes).where(eq(tDeputes.id, id)).limit(1);
+  return d?.interets ?? null;
 }
 
 /* ---------------- Scrutins ---------------- */

@@ -14,6 +14,7 @@
 import { join } from "node:path";
 import postgres from "postgres";
 import { parseOpenData } from "./lib/parse.mjs";
+import { parseHatvp, rapprocherHatvp } from "./lib/parse-hatvp.mjs";
 
 const ROOT = new URL("..", import.meta.url).pathname;
 const RAW = join(ROOT, "data", "raw");
@@ -41,6 +42,13 @@ async function upsertChunks(table, rows, columns, conflict, updateColumns) {
 
 async function main() {
   const t0 = Date.now();
+
+  // Colonnes HATVP : créées si absentes (pas de framework de migration dans ce
+  // projet ; idempotent et sans risque — colonnes nullables ajoutées au besoin).
+  await sql`alter table deputes
+    add column if not exists interets jsonb,
+    add column if not exists interets_maj timestamptz`;
+
   console.log("→ Parsing de l'open data…");
   const { groupes, deputes, scrutins } = parseOpenData(RAW);
 
@@ -110,6 +118,22 @@ async function main() {
     "numero",
     scrutinCols.filter((c) => c !== "numero")
   );
+
+  // ---------- HATVP : déclarations d'intérêts et d'activités ----------
+  // Étape indépendante : on rapproche les déclarations open data des députés
+  // (par nom + date de naissance) puis on met à jour UNIQUEMENT les colonnes
+  // `interets`/`interets_maj` — le reste du profil n'est jamais touché.
+  console.log("→ Rapprochement HATVP (déclarations d'intérêts)…");
+  const declarations = parseHatvp(RAW);
+  const interets = rapprocherHatvp(deputes, declarations);
+  if (interets.size) {
+    for (const [id, payload] of interets) {
+      await sql`update deputes set interets = ${sql.json(payload)}, interets_maj = now() where id = ${id}`;
+    }
+    console.log(`✓ ${interets.size}/${deputes.length} députés rapprochés à une déclaration HATVP.`);
+  } else {
+    console.log("⚠ Aucune déclaration HATVP rapprochée (fichier absent ?). Étape ignorée.");
+  }
 
   console.log(`✓ Import terminé en ${((Date.now() - t0) / 1000).toFixed(1)} s`);
   await sql.end();
